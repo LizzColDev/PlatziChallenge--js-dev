@@ -4,6 +4,7 @@ const add = document.querySelector("#add")
 const sub = document.querySelector("#subtract")
 const multi = document.querySelector("#multi")
 const divider = document.querySelector("#divider")
+const raiz = document.querySelector("#raiz2")
 
 const equal = document.querySelector("#equal")
 const del = document.querySelector("#del")

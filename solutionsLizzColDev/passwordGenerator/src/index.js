@@ -4,7 +4,7 @@ const form = document.querySelector(".form-container");
 const password = document.querySelector(".password");
 const buttonCopy = document.querySelector(".button");
 
-const API = "https://random-word-api.herokuapp.com/all";
+const API = "https://goquotes-api.herokuapp.com/api/v1/random?count=5";
 
 const letters = [
     "a",
@@ -44,46 +44,67 @@ function getRandomNumber(min, max) {
 
 function generatePassword(passwordLengthChosen, checkBoxChosen) {
 
-    let arrayOfArrays = [];
+    let arrayOfArrays = []; // el array que va a contener todos los arrays que elijamos[[letter],[numbers],[symbols],[words]] ej [[symbol], [words]]
 
     if (checkBoxChosen.letters) {
-        arrayOfArrays.push(letters);
+        arrayOfArrays.push(letters); // cargar todo el array de la a a la z
       }
 
     if (checkBoxChosen.numbers) {
-      arrayOfArrays.push(numbers);
+      arrayOfArrays.push(numbers); // cargar todo el array del 0 al 9
     }
 
     if (checkBoxChosen.symbols) {
-      arrayOfArrays.push(symbols);
+      arrayOfArrays.push(symbols); // // cargar todo el array de symbols que creamos anteriormente
     }
 
     if (checkBoxChosen.words) {
       arrayOfArrays.push(words);
     }
 
-    let strongPassword = [];
-    for (let i = 0; i < passwordLengthChosen; i++) {
-      const myArr = arrayOfArrays[getRandomNumber(0, arrayOfArrays.length - 1)];
-      const randomCharacter = myArr[getRandomNumber(0, myArr.length - 1)];
-      strongPassword.push(randomCharacter);
+    let strongPassword = []; // resultado - contraseña final
+    let tamano = 0 ; // número de caracteres introducidos en la contraseña final
+    let caracterFaltante = 0; // será el número de caracteres máximos que tendrá la nueva palabra. 
+
+    while (tamano < passwordLengthChosen) { // bucle mientras el tamaño sea menor a la cantidad de caracteres elegida
+      const myArr = arrayOfArrays[getRandomNumber(0, arrayOfArrays.length - 1)]; // aquí escoge uno de los arrays(según los seleccionados) arrayOfArrays[número random] ejemplo: arrayOfArrays[1]
+      
+      let randomCharacter = myArr[getRandomNumber(0, myArr.length - 1)]; // escoge un caracter de los caracteres que contenga el array que haya salido del random anterior
+      console.log('randomcaracter inicial', randomCharacter, randomCharacter.length)
+      if (randomCharacter.length === undefined){ // los simbolos y números son undefined, el .length solo funciona con strings(letters, es estring de 1)
+        tamano = tamano + 1 // porque símbolos y números solo se ponen uno cada vez
+        strongPassword.push(randomCharacter); // añade caracter a contraseña final(número o símbolo)
+      }else{ // letters o string
+        caracterFaltante = passwordLengthChosen - tamano;
+        tamano = tamano + randomCharacter.length // suma completo los caracteres de las palabras
+        if (tamano > passwordLengthChosen){ // condición el tamaño no deb exceder la cant de caracterres solicitados
+            console.log("me he pasado del tamaño")
+            console.log("caracter faltante " + caracterFaltante)
+        //   let arrWordFilter = myArr.filter(function(word){ // crea un NUEVO array, filtrando las palabras del tamaño del caracter faltante.
+        //     return word.length == caracterFaltante             
+        // });
+        let arrWordFilter = myArr.filter(word => word.length == caracterFaltante ) // crea un NUEVO array, filtrando las palabras del tamaño del caracter faltante.
+        console.log(arrWordFilter, 'después del filtro')
+        console.log(randomCharacter, 'antes del buscar una random')
+          randomCharacter = arrWordFilter[getRandomNumber(0, arrWordFilter.length - 1)];
+          strongPassword.push(randomCharacter);
+          tamano = tamano + randomCharacter.length;
+        }else{
+          strongPassword.push(randomCharacter); // agrega el caracter a la contraseña, se activa cuando el tamaño es menor que la longitud solicitada
+        }
+      }
     }
-
-    if (checkBoxChosen.words) {
-      strongPassword = strongPassword.join("-");
-    } else {
-      strongPassword = strongPassword.join("");
-    }
-
-
-    password.innerText = strongPassword;
+    strongPassword = strongPassword.join(""); // une todo en uno solo 
+    console.log(strongPassword.length + " tamaño final" )
+    password.innerText = strongPassword; // escribe en pantalla
 }
 
 function fetchData(API) {
   fetch(API)
     .then((response) => response.json()) // convierte la api a json
     .then((data) => {
-      words = data
+      words = data.quotes.map((quote) => quote.text);
+      words = words.join("").split(" ").sort();
     });
 }
 
@@ -121,17 +142,7 @@ form.addEventListener("submit", (event) => {
     {
       alert("Elige primero una de las opciones")
       password.innerText = " ";
-    } 
-      else if 
-        ((checks.words==true) && ((checks.letters==true) || (checks.numbers==true) || (checks.symbols==true)))
-        {
-          alert("No puedes mezclar palabras con el resto de opciones")
-          formElement.letters.checked = false;
-          formElement.numbers.checked = false;
-          formElement.symbols.checked = false;
-          formElement.words.checked = false;
-          password.innerText = " ";
-        }  else {
+    }   else {
                   generatePassword(passwordLength, checks);
     }  
 
